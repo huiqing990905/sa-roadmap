@@ -1,10 +1,11 @@
 -- Run this in Supabase SQL Editor (https://supabase.com/dashboard → SQL Editor)
 
 -- 1. Create the table
+-- `completed` stores a JSON object: { "item-id": { "date": "2026-02-21", "note": "...", "link": "..." }, ... }
 create table public.checklist_progress (
   id         uuid default gen_random_uuid() primary key,
   user_id    uuid references auth.users(id) not null,
-  completed  jsonb default '[]'::jsonb not null,
+  completed  jsonb default '{}'::jsonb not null,
   updated_at timestamptz default now() not null
 );
 
@@ -42,3 +43,24 @@ create trigger on_checklist_updated
   before update on public.checklist_progress
   for each row
   execute function public.handle_updated_at();
+
+-- ==========================================
+-- 7. Storage bucket for proof images
+-- ==========================================
+
+insert into storage.buckets (id, name, public) values ('proof-images', 'proof-images', true);
+
+-- Anyone can VIEW images (public portfolio)
+create policy "Public read proof images"
+  on storage.objects for select
+  using (bucket_id = 'proof-images');
+
+-- Only authenticated users can UPLOAD
+create policy "Owner upload proof images"
+  on storage.objects for insert
+  with check (bucket_id = 'proof-images' and auth.role() = 'authenticated');
+
+-- Only authenticated users can DELETE their own uploads
+create policy "Owner delete proof images"
+  on storage.objects for delete
+  using (bucket_id = 'proof-images' and auth.role() = 'authenticated');

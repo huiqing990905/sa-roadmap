@@ -1,7 +1,8 @@
 "use client";
 
 import { roadmap, getTotalItems } from "@/data/siteData";
-import { CheckCircle2, Circle, TrendingUp, Flame } from "lucide-react";
+import type { CompletedMap } from "@/hooks/useChecklist";
+import { CheckCircle2, Circle, Flame, FileCheck } from "lucide-react";
 
 const colorMap: Record<string, { bar: string; text: string; bg: string }> = {
   emerald: { bar: "from-emerald-500 to-emerald-400", text: "text-emerald-400", bg: "bg-emerald-400/10" },
@@ -17,12 +18,16 @@ const colorMap: Record<string, { bar: string; text: string; bg: string }> = {
 
 type Props = {
   completedSet: Set<string>;
+  completedMap?: CompletedMap;
 };
 
-export default function Dashboard({ completedSet }: Props) {
+export default function Dashboard({ completedSet, completedMap }: Props) {
   const totalItems = getTotalItems();
   const completedCount = completedSet.size;
   const overallPercent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
+  const documentedCount = completedMap
+    ? Object.values(completedMap).filter((p) => p.note || p.link).length
+    : 0;
 
   const phaseStats = roadmap.map((phase) => {
     const phaseTotal = phase.sections.reduce((s, sec) => s + sec.items.length, 0);
@@ -70,6 +75,15 @@ export default function Dashboard({ completedSet }: Props) {
                 <div>
                   <div className="text-lg font-bold text-white">{totalItems - completedCount}</div>
                   <div className="text-xs text-gray-500">Remaining</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-purple-400/10">
+                  <FileCheck className="w-4 h-4 text-purple-400" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-white">{documentedCount}</div>
+                  <div className="text-xs text-gray-500">Documented</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

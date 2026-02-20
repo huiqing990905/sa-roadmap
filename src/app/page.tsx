@@ -13,8 +13,18 @@ import { roadmap } from "@/data/siteData";
 import { useChecklist } from "@/hooks/useChecklist";
 
 export default function Home() {
-  const { completed, toggle, hydrated, saving, isOwner, user, signIn, signOut } =
-    useChecklist();
+  const {
+    completed,
+    completedSet,
+    toggle,
+    updateProof,
+    hydrated,
+    saving,
+    isOwner,
+    user,
+    signIn,
+    signOut,
+  } = useChecklist();
   const [authOpen, setAuthOpen] = useState(false);
 
   return (
@@ -36,13 +46,15 @@ export default function Home() {
         {hydrated ? (
           <>
             {!isOwner && <ReadOnlyBanner />}
-            <Dashboard completedSet={completed} />
+            <Dashboard completedSet={completedSet} completedMap={completed} />
             {roadmap.map((phase, i) => (
               <PhaseSection
                 key={phase.id}
                 phase={phase}
-                completedSet={completed}
+                completedMap={completed}
+                completedSet={completedSet}
                 onToggle={toggle}
+                onUpdateProof={updateProof}
                 isOwner={isOwner}
                 defaultOpen={i === 0}
                 even={i % 2 === 1}

@@ -4,39 +4,72 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
+export type Proof = {
+  date: string;
+  note?: string;
+  link?: string;
+  images?: string[];
+};
+
+export type CompletedMap = Record<string, Proof>;
+
 const TABLE = "checklist_progress";
 const LOCAL_KEY = "sa-journey-checklist";
 const DEBOUNCE_MS = 400;
 
-function saveLocal(items: string[]) {
+function saveLocal(data: CompletedMap) {
   try {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
   } catch {}
 }
 
-function loadLocal(): string[] {
+function loadLocal(): CompletedMap {
   try {
     const raw = localStorage.getItem(LOCAL_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // migrate old format (string[]) to new format
+      if (Array.isArray(parsed)) {
+        const migrated: CompletedMap = {};
+        for (const id of parsed) {
+          migrated[id] = { date: new Date().toISOString().slice(0, 10) };
+        }
+        return migrated;
+      }
+      return parsed;
+    }
   } catch {}
-  return [];
+  return {};
+}
+
+function migrateFromArray(data: unknown): CompletedMap {
+  if (Array.isArray(data)) {
+    const migrated: CompletedMap = {};
+    for (const id of data) {
+      if (typeof id === "string") {
+        migrated[id] = { date: new Date().toISOString().slice(0, 10) };
+      }
+    }
+    return migrated;
+  }
+  if (data && typeof data === "object") return data as CompletedMap;
+  return {};
 }
 
 export function useChecklist() {
-  const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [completed, setCompleted] = useState<CompletedMap>({});
   const [user, setUser] = useState<User | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowId = useRef<string | null>(null);
 
-  // 1. Auth — restore session on mount
+  // 1. Auth
   useEffect(() => {
     const client = getSupabase();
     if (!client) {
+      setCompleted(loadLocal());
       setHydrated(true);
-      // No Supabase — load from localStorage only
-      setCompleted(new Set(loadLocal()));
       return;
     }
 
@@ -51,12 +84,12 @@ export function useChecklist() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  // 2. Load data — from Supabase (public read), fallback to localStorage
+  // 2. Load
   useEffect(() => {
     const client = getSupabase();
     if (!client) {
       if (!hydrated) {
-        setCompleted(new Set(loadLocal()));
+        setCompleted(loadLocal());
         setHydrated(true);
       }
       return;
@@ -71,12 +104,11 @@ export function useChecklist() {
 
       if (!error && data) {
         rowId.current = data.id;
-        const items: string[] = Array.isArray(data.completed) ? data.completed : [];
-        setCompleted(new Set(items));
-        saveLocal(items); // sync to localStorage as cache
+        const migrated = migrateFromArray(data.completed);
+        setCompleted(migrated);
+        saveLocal(migrated);
       } else {
-        // Fallback to localStorage if Supabase fails
-        setCompleted(new Set(loadLocal()));
+        setCompleted(loadLocal());
       }
       setHydrated(true);
     }
@@ -84,12 +116,10 @@ export function useChecklist() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // 3. Save — debounced to Supabase, immediate to localStorage
-  const persistToSupabase = useCallback(
-    (newSet: Set<string>) => {
-      const payload = [...newSet];
-      // Always save to localStorage immediately (survives refresh)
-      saveLocal(payload);
+  // 3. Persist
+  const persist = useCallback(
+    (newData: CompletedMap) => {
+      saveLocal(newData);
 
       const client = getSupabase();
       if (!user || !client) return;
@@ -102,13 +132,13 @@ export function useChecklist() {
           if (rowId.current) {
             const { error } = await client
               .from(TABLE)
-              .update({ completed: payload })
+              .update({ completed: newData })
               .eq("id", rowId.current);
             if (error) console.error("Supabase update error:", error.message);
           } else {
             const { data, error } = await client
               .from(TABLE)
-              .insert({ user_id: user.id, completed: payload })
+              .insert({ user_id: user.id, completed: newData })
               .select("id")
               .single();
             if (error) console.error("Supabase insert error:", error.message);
@@ -123,27 +153,43 @@ export function useChecklist() {
     [user]
   );
 
-  // 4. Toggle
+  // 4. Toggle check
   const toggle = useCallback(
     (id: string) => {
       if (!user) return;
 
       setCompleted((prev) => {
-        const next = new Set(prev);
-        if (next.has(id)) {
-          next.delete(id);
+        const next = { ...prev };
+        if (next[id]) {
+          delete next[id];
         } else {
-          next.add(id);
+          next[id] = { date: new Date().toISOString().slice(0, 10) };
         }
-        persistToSupabase(next);
+        persist(next);
         return next;
       });
     },
-    [user, persistToSupabase]
+    [user, persist]
+  );
+
+  // 5. Update proof for a completed item
+  const updateProof = useCallback(
+    (id: string, proof: Partial<Proof>) => {
+      if (!user) return;
+
+      setCompleted((prev) => {
+        if (!prev[id]) return prev;
+        const next = { ...prev, [id]: { ...prev[id], ...proof } };
+        persist(next);
+        return next;
+      });
+    },
+    [user, persist]
   );
 
   const isOwner = !!user;
-  const completedCount = completed.size;
+  const completedCount = Object.keys(completed).length;
+  const completedSet = new Set(Object.keys(completed));
 
   const signIn = useCallback(async (email: string, password: string) => {
     const client = getSupabase();
@@ -161,7 +207,9 @@ export function useChecklist() {
 
   return {
     completed,
+    completedSet,
     toggle,
+    updateProof,
     completedCount,
     hydrated,
     saving,
