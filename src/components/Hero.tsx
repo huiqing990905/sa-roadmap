@@ -7,13 +7,13 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 hidden md:block">
         <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-brand-600/20 rounded-full blur-[128px] animate-pulse-slow" />
         <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[128px] animate-pulse-slow [animation-delay:2s]" />
       </div>
 
       <div
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.02] hidden md:block"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
@@ -26,7 +26,7 @@ export default function Hero() {
           {/* Avatar */}
           <div className="shrink-0 animate-fade-in">
             <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-brand-500 via-purple-500 to-cyan-500 opacity-60 blur-md" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-brand-500 via-purple-500 to-cyan-500 opacity-60 blur-md hidden md:block" />
               <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full overflow-hidden ring-2 ring-white/10">
                 <Image
                   src={profile.avatar}
@@ -50,15 +50,15 @@ export default function Hero() {
               <span className="text-white">{profile.name}</span>
             </h1>
 
-            <p className="text-xl md:text-2xl gradient-text font-semibold mb-3 animate-slide-up [animation-delay:0.1s] opacity-0">
+            <p className="text-xl md:text-2xl gradient-text font-semibold mb-3 animate-slide-up [animation-delay:0.1s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">
               {profile.tagline}
             </p>
 
-            <p className="text-sm text-gray-500 mb-6 animate-slide-up [animation-delay:0.2s] opacity-0">
+            <p className="text-sm text-gray-500 mb-6 animate-slide-up [animation-delay:0.2s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">
               Started {profile.startDate} &middot; Tracking every step of the journey.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 animate-slide-up [animation-delay:0.3s] opacity-0">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 animate-slide-up [animation-delay:0.3s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">
               <a
                 href="#dashboard"
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all hover:shadow-lg hover:shadow-brand-600/25"

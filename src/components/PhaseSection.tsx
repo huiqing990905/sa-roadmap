@@ -469,7 +469,7 @@ export default memo(function PhaseSection({
                                 }
                               </div>
                               <div className="flex-1 min-w-0">
-                                <span className={`text-sm leading-relaxed ${
+                                <span className={`text-sm leading-relaxed break-words ${
                                   checked
                                     ? "text-gray-400"
                                     : isOwner ? "text-gray-300 group-hover:text-white transition-colors" : "text-gray-300"
@@ -494,7 +494,7 @@ export default memo(function PhaseSection({
                               {checked && isOwner && !isEditing && (
                                 <button
                                   onClick={(e) => { e.stopPropagation(); setEditingProof(item.id); }}
-                                  className={`shrink-0 p-1.5 rounded-lg transition-all ${
+                                  className={`shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-lg transition-all ${
                                     proof && (proof.note || proof.link || (proof.images && proof.images.length > 0))
                                       ? "text-brand-400/60 hover:text-brand-400 hover:bg-white/[0.04]"
                                       : "text-gray-600 hover:text-brand-400 hover:bg-white/[0.04]"

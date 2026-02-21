@@ -22,7 +22,7 @@ export default function Footer() {
             Portfolio
             <ExternalLink className="w-3 h-3" />
           </a>
-          <span className="text-gray-800">&middot;</span>
+          <span className="text-gray-600" aria-hidden="true">&middot;</span>
           <span className="text-xs text-gray-600">
             Progress synced via Supabase
           </span>

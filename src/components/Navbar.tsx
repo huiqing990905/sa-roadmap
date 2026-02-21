@@ -18,8 +18,17 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", onScroll);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 50);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -27,7 +36,7 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-gray-950/80 backdrop-blur-xl border-b border-white/[0.06]"
+          ? "bg-gray-950/95 md:bg-gray-950/80 md:backdrop-blur-xl border-b border-white/[0.06]"
           : "bg-transparent"
       }`}
     >
@@ -89,7 +98,9 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 text-gray-400 hover:text-white"
+              className="lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center -m-2 text-gray-400 hover:text-white"
+              aria-expanded={mobileOpen}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -98,7 +109,7 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
       </div>
 
       {mobileOpen && (
-        <div className="lg:hidden bg-gray-950/95 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="lg:hidden bg-gray-950 border-b border-white/[0.06]">
           <div className="px-6 py-4 space-y-1">
             <a
               href="#dashboard"

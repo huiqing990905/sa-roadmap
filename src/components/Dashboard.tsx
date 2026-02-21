@@ -60,7 +60,7 @@ export default memo(function Dashboard({ completedSet, completedMap }: Props) {
               </div>
             </div>
 
-            <div className="flex gap-6">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4 sm:gap-6">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-emerald-400/10">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />

@@ -39,7 +39,8 @@ export default function AuthModal({ open, onClose, onSignIn }: Props) {
       <div className="relative glass border border-white/[0.1] p-8 w-full max-w-sm mx-4 rounded-2xl">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+          className="absolute top-3 right-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-white/[0.06] transition-colors"
+          aria-label="Close"
         >
           <X className="w-5 h-5" />
         </button>
