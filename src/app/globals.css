@@ -25,7 +25,12 @@
 
 @layer components {
   .glass {
-    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl;
+    @apply bg-gray-900/80 border border-white/[0.08] rounded-2xl;
+  }
+  @media (min-width: 768px) {
+    .glass {
+      @apply bg-white/[0.04] backdrop-blur-xl;
+    }
   }
   .glass-hover {
     @apply glass transition-all duration-300 hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-lg hover:shadow-brand-500/5;

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, memo, useMemo } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
 import remarkGfm from "remark-gfm";
+
+const ReactMarkdown = dynamic(() => import("react-markdown"), {
+  ssr: false,
+  loading: () => <span className="text-xs text-gray-600">Loading...</span>,
+});
 import { Phase } from "@/data/siteData";
 import type { CompletedMap, Proof } from "@/hooks/useChecklist";
 import { uploadProofImage, deleteProofImage } from "@/lib/supabase";
@@ -360,7 +365,7 @@ function ProofEditor({
 /* ──────────────────────────────────────────────
    Phase Section
    ────────────────────────────────────────────── */
-export default function PhaseSection({
+export default memo(function PhaseSection({
   phase, completedMap, completedSet, onToggle, onUpdateProof, isOwner, defaultOpen = false, even = false,
 }: Props) {
   const [expanded, setExpanded] = useState(defaultOpen);
@@ -369,12 +374,14 @@ export default function PhaseSection({
   const Icon = iconMap[phase.icon] || Layers;
   const c = colorMap[phase.color] || colorMap.blue;
 
-  const phaseTotal = phase.sections.reduce((s, sec) => s + sec.items.length, 0);
-  const phaseDone = phase.sections.reduce(
-    (s, sec) => s + sec.items.filter((item) => completedSet.has(item.id)).length, 0
-  );
-  const phasePercent = phaseTotal > 0 ? Math.round((phaseDone / phaseTotal) * 100) : 0;
-  const phaseComplete = phaseDone === phaseTotal && phaseTotal > 0;
+  const { phaseTotal, phaseDone, phasePercent, phaseComplete } = useMemo(() => {
+    const total = phase.sections.reduce((s, sec) => s + sec.items.length, 0);
+    const done = phase.sections.reduce(
+      (s, sec) => s + sec.items.filter((item) => completedSet.has(item.id)).length, 0
+    );
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    return { phaseTotal: total, phaseDone: done, phasePercent: percent, phaseComplete: done === total && total > 0 };
+  }, [phase, completedSet]);
 
   const toggleSection = (sectionId: string) => {
     setCollapsed((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
@@ -525,4 +532,4 @@ export default function PhaseSection({
       </div>
     </section>
   );
-}
+});

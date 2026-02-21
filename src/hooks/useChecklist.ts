@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -189,7 +189,7 @@ export function useChecklist() {
 
   const isOwner = !!user;
   const completedCount = Object.keys(completed).length;
-  const completedSet = new Set(Object.keys(completed));
+  const completedSet = useMemo(() => new Set(Object.keys(completed)), [completed]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const client = getSupabase();

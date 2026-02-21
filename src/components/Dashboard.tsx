@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { roadmap, getTotalItems } from "@/data/siteData";
 import type { CompletedMap } from "@/hooks/useChecklist";
 import { CheckCircle2, Circle, Flame, FileCheck } from "lucide-react";
@@ -21,22 +22,23 @@ type Props = {
   completedMap?: CompletedMap;
 };
 
-export default function Dashboard({ completedSet, completedMap }: Props) {
+export default memo(function Dashboard({ completedSet, completedMap }: Props) {
   const totalItems = getTotalItems();
   const completedCount = completedSet.size;
   const overallPercent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
-  const documentedCount = completedMap
-    ? Object.values(completedMap).filter((p) => p.note || p.link).length
-    : 0;
+  const documentedCount = useMemo(
+    () => completedMap ? Object.values(completedMap).filter((p) => p.note || p.link).length : 0,
+    [completedMap]
+  );
 
-  const phaseStats = roadmap.map((phase) => {
+  const phaseStats = useMemo(() => roadmap.map((phase) => {
     const phaseTotal = phase.sections.reduce((s, sec) => s + sec.items.length, 0);
     const phaseDone = phase.sections.reduce(
       (s, sec) => s + sec.items.filter((item) => completedSet.has(item.id)).length,
       0
     );
     return { ...phase, total: phaseTotal, done: phaseDone, percent: phaseTotal > 0 ? Math.round((phaseDone / phaseTotal) * 100) : 0 };
-  });
+  }), [completedSet]);
 
   return (
     <section id="dashboard" className="py-20 px-6 md:px-12">
@@ -149,4 +151,4 @@ export default function Dashboard({ completedSet, completedMap }: Props) {
       </div>
     </section>
   );
-}
+});
