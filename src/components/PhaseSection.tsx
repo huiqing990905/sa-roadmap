@@ -127,14 +127,14 @@ function ProofDisplay({ proof }: { proof: Proof }) {
             <button
               key={i}
               onClick={() => setLightbox(url)}
-              className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-white/[0.06] hover:border-brand-500/30 transition-all group"
+              className="relative w-28 h-28 md:w-36 md:h-36 rounded-lg overflow-hidden border border-white/[0.06] hover:border-brand-500/30 bg-white/[0.02] transition-all group"
             >
               <Image
                 src={url}
                 alt={`Proof ${i + 1}`}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform"
-                sizes="96px"
+                className="object-contain p-1 group-hover:scale-105 transition-transform"
+                sizes="144px"
               />
             </button>
           ))}
@@ -271,8 +271,8 @@ function ProofEditor({
         {images.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {images.map((url, i) => (
-              <div key={i} className="relative w-24 h-24 rounded-lg overflow-hidden border border-white/[0.08] group">
-                <Image src={url} alt={`Upload ${i + 1}`} fill className="object-cover" sizes="96px" />
+              <div key={i} className="relative w-28 h-28 rounded-lg overflow-hidden border border-white/[0.08] bg-white/[0.02] group">
+                <Image src={url} alt={`Upload ${i + 1}`} fill className="object-contain p-1" sizes="112px" />
                 <button
                   onClick={() => removeImage(url)}
                   className="absolute top-1 right-1 p-1 rounded-md bg-black/60 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
