@@ -41,10 +41,10 @@ export default memo(function Dashboard({ completedSet, completedMap }: Props) {
   }), [completedSet]);
 
   return (
-    <section id="dashboard" className="py-20 px-6 md:px-12">
+    <section id="dashboard" className="py-12 md:py-20 px-4 md:px-12">
       <div className="max-w-7xl mx-auto">
         {/* Overall stats */}
-        <div className="glass p-6 md:p-8 mb-8">
+        <div className="glass p-4 md:p-8 mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-12 mb-6">
             <div>
               <div className="text-sm text-gray-500 uppercase tracking-wider mb-1">
@@ -110,37 +110,35 @@ export default memo(function Dashboard({ completedSet, completedMap }: Props) {
         </div>
 
         {/* Phase breakdown */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {phaseStats.map((p) => {
             const c = colorMap[p.color] || colorMap.blue;
             return (
               <a
                 key={p.id}
                 href={`#${p.id}`}
-                className="glass-hover p-5 group block"
+                className="glass-hover p-4 md:p-5 group block"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs font-mono ${c.text} ${c.bg} px-2 py-0.5 rounded`}>
-                      P{p.phase}
-                    </span>
-                    <span className="text-sm font-medium text-white group-hover:text-brand-300 transition-colors truncate">
-                      {p.title}
-                    </span>
-                  </div>
-                  <span className="text-xs font-mono text-gray-500">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`text-xs font-mono ${c.text} ${c.bg} px-2 py-0.5 rounded shrink-0`}>
+                    P{p.phase}
+                  </span>
+                  <span className="text-sm font-medium text-white group-hover:text-brand-300 transition-colors truncate flex-1">
+                    {p.title}
+                  </span>
+                  <span className="text-xs font-mono text-gray-500 shrink-0">
                     {p.done}/{p.total}
                   </span>
                 </div>
 
-                <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
+                <div className="h-1.5 md:h-2 rounded-full bg-gray-800 overflow-hidden">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r ${c.bar} transition-all duration-700 ease-out`}
                     style={{ width: `${p.percent}%` }}
                   />
                 </div>
 
-                <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center justify-between mt-1.5">
                   <span className="text-xs text-gray-600">{p.timeline}</span>
                   <span className={`text-xs font-medium ${c.text}`}>{p.percent}%</span>
                 </div>
