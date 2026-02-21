@@ -44,6 +44,62 @@
   }
 }
 
+@layer components {
+  .prose-proof {
+    @apply text-sm leading-relaxed text-gray-400;
+  }
+  .prose-proof h1,
+  .prose-proof h2,
+  .prose-proof h3 {
+    @apply text-gray-300 font-semibold mt-3 mb-1;
+  }
+  .prose-proof h1 { @apply text-base; }
+  .prose-proof h2 { @apply text-sm; }
+  .prose-proof h3 { @apply text-sm; }
+  .prose-proof p {
+    @apply my-1.5;
+  }
+  .prose-proof strong {
+    @apply text-gray-300 font-medium;
+  }
+  .prose-proof code {
+    @apply text-brand-400 bg-white/[0.06] px-1.5 py-0.5 rounded text-xs;
+  }
+  .prose-proof pre {
+    @apply bg-white/[0.04] border border-white/[0.06] rounded-lg p-3 my-2 overflow-x-auto;
+  }
+  .prose-proof pre code {
+    @apply bg-transparent p-0 text-gray-300;
+  }
+  .prose-proof ul,
+  .prose-proof ol {
+    @apply my-1.5 pl-5;
+  }
+  .prose-proof ul { list-style-type: disc; }
+  .prose-proof ol { list-style-type: decimal; }
+  .prose-proof li {
+    @apply my-0.5;
+  }
+  .prose-proof a {
+    @apply text-brand-400 hover:text-brand-300 underline underline-offset-2 transition-colors;
+  }
+  .prose-proof table {
+    @apply w-full my-2 text-xs border-collapse;
+  }
+  .prose-proof th {
+    @apply text-left text-gray-300 font-medium px-2 py-1.5 border-b border-white/[0.08] bg-white/[0.03];
+  }
+  .prose-proof td {
+    @apply px-2 py-1.5 border-b border-white/[0.04];
+  }
+  .prose-proof hr {
+    @apply my-3 border-white/[0.06];
+  }
+  .prose-proof blockquote {
+    @apply border-l-2 border-brand-500/30 pl-3 my-2 text-gray-500 italic;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

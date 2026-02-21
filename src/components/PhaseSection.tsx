@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Phase } from "@/data/siteData";
 import type { CompletedMap, Proof } from "@/hooks/useChecklist";
 import { uploadProofImage, deleteProofImage } from "@/lib/supabase";
@@ -63,16 +66,33 @@ type Props = {
    Image Lightbox — click to view full size
    ────────────────────────────────────────────── */
 function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
-  return (
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-sm p-6"
+      style={{ zIndex: 9999 }}
       onClick={onClose}
     >
-      <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white">
-        <X className="w-6 h-6" />
+      <button onClick={onClose} className="absolute top-5 right-5 text-white/70 hover:text-white z-10">
+        <X className="w-7 h-7" />
       </button>
-      <img src={src} alt="Proof" className="max-w-full max-h-[90vh] rounded-xl object-contain" />
-    </div>
+      <img
+        src={src}
+        alt="Proof"
+        className="max-w-full max-h-[90vh] rounded-xl object-contain"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>,
+    document.body
   );
 }
 
@@ -81,12 +101,15 @@ function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
    ────────────────────────────────────────────── */
 function ProofDisplay({ proof }: { proof: Proof }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const hasContent = proof.note || proof.link || (proof.images && proof.images.length > 0);
   if (!hasContent && !proof.date) return null;
 
+  const isLong = (proof.note?.split("\n").length ?? 0) > 4 || (proof.note?.length ?? 0) > 200;
+
   return (
     <div className="mt-3 space-y-2">
-      {/* Meta row: date + link */}
+      {/* Meta row: date + link + images */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
         {proof.date && (
           <span className="flex items-center gap-1 text-gray-600">
@@ -107,37 +130,39 @@ function ProofDisplay({ proof }: { proof: Proof }) {
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
         )}
+        {proof.images && proof.images.length > 0 && proof.images.map((url, i) => (
+          <button
+            key={i}
+            onClick={(e) => { e.stopPropagation(); setLightbox(url); }}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.06] hover:border-brand-500/30 text-gray-500 hover:text-brand-400 transition-all"
+          >
+            <ImagePlus className="w-3 h-3" />
+            {proof.images!.length === 1 ? "View image" : `Image ${i + 1}`}
+          </button>
+        ))}
       </div>
 
-      {/* Note — rendered with preserved whitespace */}
+      {/* Note — markdown rendered, collapsible */}
       {proof.note && (
-        <div
-          className="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap pl-0.5 border-l-2 border-brand-500/20 ml-0.5 py-1"
-          style={{ paddingLeft: "0.75rem" }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {proof.note}
-        </div>
-      )}
-
-      {/* Images gallery */}
-      {proof.images && proof.images.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-1" onClick={(e) => e.stopPropagation()}>
-          {proof.images.map((url, i) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`prose-proof border-l-2 border-brand-500/20 pl-3 ml-0.5 ${
+              !expanded && isLong ? "max-h-24 overflow-hidden relative" : ""
+            }`}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{proof.note}</ReactMarkdown>
+            {!expanded && isLong && (
+              <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
+            )}
+          </div>
+          {isLong && (
             <button
-              key={i}
-              onClick={() => setLightbox(url)}
-              className="relative w-28 h-28 md:w-36 md:h-36 rounded-lg overflow-hidden border border-white/[0.06] hover:border-brand-500/30 bg-white/[0.02] transition-all group"
+              onClick={() => setExpanded(!expanded)}
+              className="mt-1 ml-3 text-xs text-brand-400 hover:text-brand-300 transition-colors"
             >
-              <Image
-                src={url}
-                alt={`Proof ${i + 1}`}
-                fill
-                className="object-contain p-1 group-hover:scale-105 transition-transform"
-                sizes="144px"
-              />
+              {expanded ? "Show less" : "Read more..."}
             </button>
-          ))}
+          )}
         </div>
       )}
 
@@ -271,8 +296,8 @@ function ProofEditor({
         {images.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {images.map((url, i) => (
-              <div key={i} className="relative w-28 h-28 rounded-lg overflow-hidden border border-white/[0.08] bg-white/[0.02] group">
-                <Image src={url} alt={`Upload ${i + 1}`} fill className="object-contain p-1" sizes="112px" />
+              <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-white/[0.08] bg-white/[0.02] group">
+                <Image src={url} alt={`Upload ${i + 1}`} fill className="object-contain p-0.5" sizes="80px" />
                 <button
                   onClick={() => removeImage(url)}
                   className="absolute top-1 right-1 p-1 rounded-md bg-black/60 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
