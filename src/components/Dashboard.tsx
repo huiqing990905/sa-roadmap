@@ -3,7 +3,7 @@
 import { memo, useMemo } from "react";
 import { roadmap, getTotalItems } from "@/data/siteData";
 import type { CompletedMap } from "@/hooks/useChecklist";
-import { CheckCircle2, Circle, Flame, FileCheck } from "lucide-react";
+import { CheckCircle2, Circle, Flame, FileCheck, ShieldCheck } from "lucide-react";
 
 const colorMap: Record<string, { bar: string; text: string; bg: string }> = {
   emerald: { bar: "from-emerald-500 to-emerald-400", text: "text-emerald-400", bg: "bg-emerald-400/10" },
@@ -28,6 +28,10 @@ export default memo(function Dashboard({ completedSet, completedMap }: Props) {
   const overallPercent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;
   const documentedCount = useMemo(
     () => completedMap ? Object.values(completedMap).filter((p) => p.note || p.link).length : 0,
+    [completedMap]
+  );
+  const verifiedCount = useMemo(
+    () => completedMap ? Object.values(completedMap).filter((p) => p.quiz && p.quiz.bestScore >= 70).length : 0,
     [completedMap]
   );
 
@@ -86,6 +90,15 @@ export default memo(function Dashboard({ completedSet, completedMap }: Props) {
                 <div>
                   <div className="text-lg font-bold text-white">{documentedCount}</div>
                   <div className="text-xs text-gray-500">Documented</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-emerald-400/10">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-white">{verifiedCount}</div>
+                  <div className="text-xs text-gray-500">Verified</div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

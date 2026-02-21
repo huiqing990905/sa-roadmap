@@ -13,6 +13,7 @@ const ReactMarkdown = dynamic(() => import("react-markdown"), {
 import { Phase } from "@/data/siteData";
 import type { CompletedMap, Proof } from "@/hooks/useChecklist";
 import { uploadProofImage, deleteProofImage } from "@/lib/supabase";
+import QuizModal from "./QuizModal";
 import {
   Layers,
   Cloud,
@@ -36,6 +37,8 @@ import {
   ImagePlus,
   Trash2,
   Loader2,
+  Brain,
+  ShieldCheck,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -145,6 +148,19 @@ function ProofDisplay({ proof }: { proof: Proof }) {
             {proof.images!.length === 1 ? "View image" : `Image ${i + 1}`}
           </button>
         ))}
+        {proof.quiz && (
+          <span
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border ${
+              proof.quiz.bestScore >= 70
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+            }`}
+          >
+            <ShieldCheck className="w-3 h-3" />
+            <span className="font-medium">{proof.quiz.bestScore}%</span>
+            <span className="text-[10px] opacity-70">{proof.quiz.date}</span>
+          </span>
+        )}
       </div>
 
       {/* Note — markdown rendered, collapsible */}
@@ -371,6 +387,7 @@ export default memo(function PhaseSection({
   const [expanded, setExpanded] = useState(defaultOpen);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [editingProof, setEditingProof] = useState<string | null>(null);
+  const [quizTask, setQuizTask] = useState<{ id: string; name: string } | null>(null);
   const Icon = iconMap[phase.icon] || Layers;
   const c = colorMap[phase.color] || colorMap.blue;
 
@@ -490,6 +507,32 @@ export default memo(function PhaseSection({
                                 )}
                               </div>
 
+                              {/* Verified badge — visible to everyone */}
+                              {checked && proof?.quiz && proof.quiz.bestScore >= 70 && !isOwner && (
+                                <span className="shrink-0 flex items-center justify-center p-1.5" title={`Verified: ${proof.quiz.bestScore}%`}>
+                                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                                </span>
+                              )}
+
+                              {/* Quiz Me button — owner only */}
+                              {checked && isOwner && !isEditing && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setQuizTask({ id: item.id, name: item.task }); }}
+                                  className={`shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-lg transition-all ${
+                                    proof?.quiz && proof.quiz.bestScore >= 70
+                                      ? "text-emerald-400/60 hover:text-emerald-400 hover:bg-white/[0.04]"
+                                      : "text-gray-600 hover:text-brand-400 hover:bg-white/[0.04]"
+                                  }`}
+                                  title={proof?.quiz ? `Best: ${proof.quiz.bestScore}% — Quiz again` : "Quiz Me"}
+                                >
+                                  {proof?.quiz && proof.quiz.bestScore >= 70 ? (
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Brain className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                              )}
+
                               {/* Edit proof button — owner only */}
                               {checked && isOwner && !isEditing && (
                                 <button
@@ -530,6 +573,26 @@ export default memo(function PhaseSection({
           </div>
         )}
       </div>
+
+      {quizTask && (
+        <QuizModal
+          taskId={quizTask.id}
+          taskName={quizTask.name}
+          existingBestScore={completedMap[quizTask.id]?.quiz?.bestScore}
+          onClose={() => setQuizTask(null)}
+          onSaveResult={(result) => {
+            onUpdateProof(quizTask.id, {
+              quiz: {
+                score: result.score,
+                total: result.total,
+                correct: result.correct,
+                date: new Date().toISOString().slice(0, 10),
+                bestScore: result.bestScore,
+              },
+            });
+          }}
+        />
+      )}
     </section>
   );
 });

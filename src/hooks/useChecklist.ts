@@ -4,11 +4,20 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
+export type QuizResult = {
+  score: number;
+  total: number;
+  correct: number;
+  date: string;
+  bestScore: number;
+};
+
 export type Proof = {
   date: string;
   note?: string;
   link?: string;
   images?: string[];
+  quiz?: QuizResult;
 };
 
 export type CompletedMap = Record<string, Proof>;
