@@ -477,7 +477,13 @@ export default memo(function PhaseSection({
                           <div key={item.id} className={`py-3 border-b border-white/[0.03] last:border-0`}>
                             <div
                               className={`flex items-start gap-3 ${isOwner ? "cursor-pointer group" : ""}`}
-                              onClick={() => isOwner && onToggle(item.id)}
+                              onClick={() => {
+                                if (!isOwner) return;
+                                if (checked && proof && (proof.note || proof.link || (proof.images && proof.images.length > 0) || proof.quiz)) {
+                                  if (!window.confirm("This task has documented proof. Are you sure you want to uncheck it? All proof data will be lost.")) return;
+                                }
+                                onToggle(item.id);
+                              }}
                             >
                               <div className="pt-0.5 shrink-0">
                                 {checked
