@@ -4,12 +4,33 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { getSupabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
+export type McqRecord = {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  selected: number;
+  correct: boolean;
+  explanation: string;
+};
+
+export type ScenarioRecord = {
+  question: string;
+  answer: string;
+  score: number;
+  maxScore: number;
+  strengths: string[];
+  improvements: string[];
+  modelAnswer: string;
+};
+
 export type QuizResult = {
   score: number;
   total: number;
   correct: number;
   date: string;
   bestScore: number;
+  mcq?: McqRecord[];
+  scenario?: ScenarioRecord;
 };
 
 export type Proof = {

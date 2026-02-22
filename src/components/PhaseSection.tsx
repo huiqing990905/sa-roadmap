@@ -39,6 +39,10 @@ import {
   Loader2,
   Brain,
   ShieldCheck,
+  Zap,
+  Target,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -110,7 +114,8 @@ function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
 function ProofDisplay({ proof }: { proof: Proof }) {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const hasContent = proof.note || proof.link || (proof.images && proof.images.length > 0);
+  const [quizExpanded, setQuizExpanded] = useState(false);
+  const hasContent = proof.note || proof.link || (proof.images && proof.images.length > 0) || proof.quiz;
   if (!hasContent && !proof.date) return null;
 
   const isLong = (proof.note?.split("\n").length ?? 0) > 4 || (proof.note?.length ?? 0) > 200;
@@ -183,6 +188,110 @@ function ProofDisplay({ proof }: { proof: Proof }) {
             >
               {expanded ? "Show less" : "Read more..."}
             </button>
+          )}
+        </div>
+      )}
+
+      {/* Quiz Q&A — visible to everyone */}
+      {proof.quiz && (proof.quiz.mcq || proof.quiz.scenario) && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setQuizExpanded(!quizExpanded)}
+            className="flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+          >
+            <Brain className="w-3 h-3" />
+            {quizExpanded ? "Hide quiz details" : "View quiz Q&A"}
+          </button>
+
+          {quizExpanded && (
+            <div className="mt-2 space-y-3">
+              {/* MCQ results */}
+              {proof.quiz.mcq && proof.quiz.mcq.length > 0 && (
+                <div className="space-y-2">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-gray-400">
+                    <Zap className="w-3 h-3" />
+                    Quick Check
+                  </p>
+                  {proof.quiz.mcq.map((q, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 rounded-lg border text-xs ${
+                        q.correct
+                          ? "border-emerald-500/15 bg-emerald-500/5"
+                          : "border-red-500/15 bg-red-500/5"
+                      }`}
+                    >
+                      <div className="flex items-start gap-1.5 mb-1.5">
+                        {q.correct ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0" />
+                        ) : (
+                          <XCircle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
+                        )}
+                        <span className="text-gray-300">{q.question}</span>
+                      </div>
+                      <div className="ml-[18px] space-y-0.5 text-gray-500">
+                        <p>
+                          My answer: <span className={q.correct ? "text-emerald-400" : "text-red-400"}>{q.options[q.selected]}</span>
+                        </p>
+                        {!q.correct && (
+                          <p>Correct: <span className="text-emerald-400">{q.options[q.correctIndex]}</span></p>
+                        )}
+                        <p className="text-gray-600 mt-1">{q.explanation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Scenario result */}
+              {proof.quiz.scenario && (
+                <div className="space-y-2">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-gray-400">
+                    <Target className="w-3 h-3" />
+                    Deep Dive — {proof.quiz.scenario.score}/{proof.quiz.scenario.maxScore}
+                  </p>
+                  <div className="p-3 rounded-lg border border-white/[0.06] bg-white/[0.02] text-xs space-y-2">
+                    <div>
+                      <p className="text-gray-500 mb-1">Scenario:</p>
+                      <p className="text-gray-300 leading-relaxed">{proof.quiz.scenario.question}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500 mb-1">My answer:</p>
+                      <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{proof.quiz.scenario.answer}</p>
+                    </div>
+                    {proof.quiz.scenario.strengths.length > 0 && (
+                      <div>
+                        <p className="text-emerald-400/80 mb-0.5">Strengths:</p>
+                        <ul className="space-y-0.5 text-gray-400">
+                          {proof.quiz.scenario.strengths.map((s, i) => (
+                            <li key={i} className="flex gap-1.5">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400/60 mt-0.5 shrink-0" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {proof.quiz.scenario.improvements.length > 0 && (
+                      <div>
+                        <p className="text-amber-400/80 mb-0.5">Areas to improve:</p>
+                        <ul className="space-y-0.5 text-gray-400">
+                          {proof.quiz.scenario.improvements.map((s, i) => (
+                            <li key={i}>• {s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-gray-500 mb-0.5">Model answer:</p>
+                      <div className="prose-proof">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{proof.quiz.scenario.modelAnswer}</ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -594,6 +703,8 @@ export default memo(function PhaseSection({
                 correct: result.correct,
                 date: new Date().toISOString().slice(0, 10),
                 bestScore: result.bestScore,
+                mcq: result.mcq,
+                scenario: result.scenario,
               },
             });
           }}

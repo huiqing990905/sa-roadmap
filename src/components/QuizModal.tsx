@@ -44,16 +44,39 @@ type EvaluationResult = {
   modelAnswer: string;
 };
 
+type McqRecord = {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  selected: number;
+  correct: boolean;
+  explanation: string;
+};
+
+type ScenarioRecord = {
+  question: string;
+  answer: string;
+  score: number;
+  maxScore: number;
+  strengths: string[];
+  improvements: string[];
+  modelAnswer: string;
+};
+
+type SavePayload = {
+  score: number;
+  total: number;
+  correct: number;
+  bestScore: number;
+  mcq?: McqRecord[];
+  scenario?: ScenarioRecord;
+};
+
 type Props = {
   taskId: string;
   taskName: string;
   onClose: () => void;
-  onSaveResult: (result: {
-    score: number;
-    total: number;
-    correct: number;
-    bestScore: number;
-  }) => void;
+  onSaveResult: (result: SavePayload) => void;
   existingBestScore?: number;
 };
 
@@ -240,7 +263,33 @@ export default function QuizModal({
   const handleSave = () => {
     const { score, total, correct } = computeScore();
     const bestScore = Math.max(score, existingBestScore ?? 0);
-    onSaveResult({ score, total, correct, bestScore });
+
+    const payload: SavePayload = { score, total, correct, bestScore };
+
+    if (mcqDone && mcqQuestions.length > 0) {
+      payload.mcq = mcqQuestions.map((q, i) => ({
+        question: q.question,
+        options: q.options,
+        correctIndex: q.correctIndex,
+        selected: mcqAnswers[i]?.selected ?? -1,
+        correct: mcqAnswers[i]?.correct ?? false,
+        explanation: q.explanation,
+      }));
+    }
+
+    if (evaluation && scenarioData) {
+      payload.scenario = {
+        question: scenarioData.scenario,
+        answer: userAnswer,
+        score: evaluation.score,
+        maxScore: evaluation.maxScore,
+        strengths: evaluation.strengths,
+        improvements: evaluation.improvements,
+        modelAnswer: evaluation.modelAnswer,
+      };
+    }
+
+    onSaveResult(payload);
     setSaved(true);
   };
 
