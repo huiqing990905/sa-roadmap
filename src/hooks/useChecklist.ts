@@ -45,47 +45,8 @@ export type Proof = {
 export type CompletedMap = Record<string, Proof>;
 
 const TABLE = "checklist_progress";
-const LOCAL_KEY = "sa-journey-checklist";
 const DEBOUNCE_MS = 400;
 const LEGACY_TRACK: TrackId = "sa";
-
-function getLocalKey(trackId: TrackId): string {
-  return `${LOCAL_KEY}:${trackId}`;
-}
-
-function saveLocal(data: CompletedMap, trackId: TrackId) {
-  try {
-    localStorage.setItem(getLocalKey(trackId), JSON.stringify(data));
-  } catch {}
-}
-
-function loadLocal(trackId: TrackId): CompletedMap {
-  try {
-    const raw = localStorage.getItem(getLocalKey(trackId));
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      // migrate old format (string[]) to new format
-      if (Array.isArray(parsed)) {
-        const migrated: CompletedMap = {};
-        for (const id of parsed) {
-          migrated[id] = { date: new Date().toISOString().slice(0, 10) };
-        }
-        return migrated;
-      }
-      return parsed;
-    }
-
-    // Backward compatibility for pre-track data.
-    if (trackId === LEGACY_TRACK) {
-      const legacy = localStorage.getItem(LOCAL_KEY);
-      if (legacy) {
-        const parsed = JSON.parse(legacy);
-        return migrateFromArray(parsed);
-      }
-    }
-  } catch {}
-  return {};
-}
 
 function migrateFromArray(data: unknown): CompletedMap {
   if (Array.isArray(data)) {
@@ -106,6 +67,7 @@ export function useChecklist(trackId: TrackId) {
   const [user, setUser] = useState<User | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [supportsTrackColumn, setSupportsTrackColumn] = useState(true);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowId = useRef<string | null>(null);
@@ -119,10 +81,12 @@ export function useChecklist(trackId: TrackId) {
   useEffect(() => {
     const client = getSupabase();
     if (!client) {
-      setCompleted(loadLocal(trackId));
+      setCompleted({});
+      setSyncError("Supabase is not configured. Progress sync is disabled.");
       setHydrated(true);
       return;
     }
+    setSyncError(null);
 
     client.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -139,10 +103,9 @@ export function useChecklist(trackId: TrackId) {
   useEffect(() => {
     const client = getSupabase();
     if (!client) {
-      if (!hydrated) {
-        setCompleted(loadLocal(trackId));
-        setHydrated(true);
-      }
+      setCompleted({});
+      setSyncError("Supabase is not configured. Progress sync is disabled.");
+      setHydrated(true);
       return;
     }
 
@@ -160,13 +123,27 @@ export function useChecklist(trackId: TrackId) {
           rowId.current = data.id;
           const migrated = migrateFromArray(data.completed);
           setCompleted(migrated);
-          saveLocal(migrated, trackId);
+          setSyncError(null);
           setHydrated(true);
           return;
         }
 
         if (error && error.message.includes("track_id")) {
           setSupportsTrackColumn(false);
+          if (trackId !== LEGACY_TRACK) {
+            setSyncError("Database schema is missing track_id. Run migration before using Mastery track.");
+            setHydrated(true);
+            return;
+          }
+        } else if (error) {
+          setSyncError(`Failed to load progress: ${error.message}`);
+          setHydrated(true);
+          return;
+        } else {
+          setCompleted({});
+          setSyncError(null);
+          setHydrated(true);
+          return;
         }
       }
 
@@ -182,13 +159,25 @@ export function useChecklist(trackId: TrackId) {
           rowId.current = data.id;
           const migrated = migrateFromArray(data.completed);
           setCompleted(migrated);
-          saveLocal(migrated, trackId);
+          setSyncError(null);
           setHydrated(true);
           return;
         }
+
+        if (error) {
+          setSyncError(`Failed to load progress: ${error.message}`);
+          setHydrated(true);
+          return;
+        }
+
+        setCompleted({});
+        setSyncError(null);
+        setHydrated(true);
+        return;
       }
 
-      setCompleted(loadLocal(trackId));
+      setCompleted({});
+      setSyncError("Database schema is missing track_id. Run migration before using this track.");
       setHydrated(true);
     }
     load();
@@ -198,10 +187,12 @@ export function useChecklist(trackId: TrackId) {
   // 3. Persist
   const persist = useCallback(
     (newData: CompletedMap) => {
-      saveLocal(newData, trackId);
-
       const client = getSupabase();
-      if (!user || !client) return;
+      if (!user) return;
+      if (!client) {
+        setSyncError("Supabase is not configured. Save failed.");
+        return;
+      }
 
       if (saveTimer.current) clearTimeout(saveTimer.current);
 
@@ -214,36 +205,57 @@ export function useChecklist(trackId: TrackId) {
               .update({ completed: newData })
               .eq("id", rowId.current)
               .eq("track_id", trackId);
-            if (error) console.error("Supabase update error:", error.message);
+            if (error) {
+              setSyncError(`Save failed: ${error.message}`);
+              console.error("Supabase update error:", error.message);
+            } else {
+              setSyncError(null);
+            }
           } else if (supportsTrackColumn) {
             const { data, error } = await client
               .from(TABLE)
               .insert({ user_id: user.id, track_id: trackId, completed: newData })
               .select("id")
               .single();
-            if (error) console.error("Supabase insert error:", error.message);
-            if (data) rowId.current = data.id;
+            if (error) {
+              setSyncError(`Save failed: ${error.message}`);
+              console.error("Supabase insert error:", error.message);
+            } else {
+              if (data) rowId.current = data.id;
+              setSyncError(null);
+            }
           } else if (trackId === LEGACY_TRACK) {
             if (rowId.current) {
               const { error } = await client
                 .from(TABLE)
                 .update({ completed: newData })
                 .eq("id", rowId.current);
-              if (error) console.error("Supabase update error:", error.message);
+              if (error) {
+                setSyncError(`Save failed: ${error.message}`);
+                console.error("Supabase update error:", error.message);
+              } else {
+                setSyncError(null);
+              }
             } else {
               const { data, error } = await client
                 .from(TABLE)
                 .insert({ user_id: user.id, completed: newData })
                 .select("id")
                 .single();
-              if (error) console.error("Supabase insert error:", error.message);
-              if (data) rowId.current = data.id;
+              if (error) {
+                setSyncError(`Save failed: ${error.message}`);
+                console.error("Supabase insert error:", error.message);
+              } else {
+                if (data) rowId.current = data.id;
+                setSyncError(null);
+              }
             }
           } else {
-            // Legacy schema does not support non-SA track persistence.
-            console.warn("Supabase schema missing track_id. Persisting mastery track locally only.");
+            setSyncError("Save blocked: database schema missing track_id for this track.");
+            console.warn("Supabase schema missing track_id. Save blocked.");
           }
         } catch (err) {
+          setSyncError("Save failed due to an unexpected error.");
           console.error("Supabase save failed:", err);
         }
         setSaving(false);
@@ -312,6 +324,7 @@ export function useChecklist(trackId: TrackId) {
     completedCount,
     hydrated,
     saving,
+    syncError,
     isOwner,
     user,
     signIn,

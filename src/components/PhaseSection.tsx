@@ -307,10 +307,12 @@ function ProofDisplay({ proof }: { proof: Proof }) {
 function ProofEditor({
   proof,
   onSave,
+  onBeforeSave,
   onClose,
 }: {
   proof: Proof;
   onSave: (p: Partial<Proof>) => void;
+  onBeforeSave?: () => void;
   onClose: () => void;
 }) {
   const [note, setNote] = useState(proof.note || "");
@@ -361,6 +363,7 @@ function ProofEditor({
   };
 
   const handleSave = () => {
+    onBeforeSave?.();
     onSave({
       note: note || undefined,
       link: link || undefined,
@@ -497,6 +500,7 @@ export default memo(function PhaseSection({
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [editingProof, setEditingProof] = useState<string | null>(null);
   const [quizTask, setQuizTask] = useState<{ id: string; name: string } | null>(null);
+  const pendingScrollRestore = useRef<{ id: string; top: number } | null>(null);
   const Icon = iconMap[phase.icon] || Layers;
   const c = colorMap[phase.color] || colorMap.blue;
 
@@ -512,6 +516,32 @@ export default memo(function PhaseSection({
   const toggleSection = (sectionId: string) => {
     setCollapsed((prev) => ({ ...prev, [sectionId]: !prev[sectionId] }));
   };
+
+  const captureScrollAnchor = useCallback((itemId: string) => {
+    if (typeof window === "undefined") return;
+    const anchor = document.getElementById(`task-row-${itemId}`);
+    if (!anchor) return;
+    pendingScrollRestore.current = { id: itemId, top: anchor.getBoundingClientRect().top };
+  }, []);
+
+  useEffect(() => {
+    if (!pendingScrollRestore.current) return;
+    if (editingProof !== null) return;
+
+    const anchorMeta = pendingScrollRestore.current;
+    const raf = requestAnimationFrame(() => {
+      const anchor = document.getElementById(`task-row-${anchorMeta.id}`);
+      if (!anchor) {
+        pendingScrollRestore.current = null;
+        return;
+      }
+      const delta = anchor.getBoundingClientRect().top - anchorMeta.top;
+      if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: "auto" });
+      pendingScrollRestore.current = null;
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [completedMap, editingProof]);
 
   return (
     <section id={phase.id} className={`py-8 md:py-16 px-4 md:px-12 ${even ? "bg-white/[0.01]" : ""}`}>
@@ -583,7 +613,7 @@ export default memo(function PhaseSection({
                         const isEditing = editingProof === item.id;
 
                         return (
-                          <div key={item.id} className={`py-3 border-b border-white/[0.03] last:border-0`}>
+                          <div id={`task-row-${item.id}`} key={item.id} className={`py-3 border-b border-white/[0.03] last:border-0`}>
                             <div
                               className={`flex items-start gap-3 ${isOwner ? "cursor-pointer group" : ""}`}
                               onClick={() => {
@@ -672,6 +702,7 @@ export default memo(function PhaseSection({
                               <div className="ml-8">
                                 <ProofEditor
                                   proof={proof}
+                                  onBeforeSave={() => captureScrollAnchor(item.id)}
                                   onSave={(p) => onUpdateProof(item.id, p)}
                                   onClose={() => setEditingProof(null)}
                                 />

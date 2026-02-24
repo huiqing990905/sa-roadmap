@@ -22,6 +22,7 @@ export default function Home() {
     updateProof,
     hydrated,
     saving,
+    syncError,
     isOwner,
     user,
     signIn,
@@ -47,6 +48,13 @@ export default function Home() {
         onSignIn={signIn}
       />
       <main>
+        {syncError && (
+          <div className="px-4 md:px-12 pt-20 md:pt-24">
+            <div className="max-w-7xl mx-auto rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              Sync error: {syncError}
+            </div>
+          </div>
+        )}
         <Hero trackId={mode} />
         {hydrated ? (
           <>
