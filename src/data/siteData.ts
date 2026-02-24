@@ -34,6 +34,15 @@ export type Phase = {
   sections: SubSection[];
 };
 
+export type TrackId = "sa" | "mastery";
+
+export type RoadmapTrack = {
+  id: TrackId;
+  label: string;
+  description: string;
+  roadmap: Phase[];
+};
+
 export const roadmap: Phase[] = [
   // ──────────────────────────────────────────
   // PHASE 1: Foundations
@@ -620,8 +629,357 @@ export const roadmap: Phase[] = [
   },
 ];
 
-export function getTotalItems(): number {
-  return roadmap.reduce(
+export const masteryRoadmap: Phase[] = [
+  {
+    id: "m-java-jvm",
+    phase: 1,
+    title: "Java Core & JVM",
+    subtitle: "Build deep confidence in Java runtime behavior",
+    timeline: "Month 1",
+    color: "emerald",
+    icon: "layers",
+    sections: [
+      {
+        id: "m-jvm-fundamentals",
+        title: "JVM Fundamentals",
+        items: [
+          { id: "m-jvm-1", task: "Understand JVM memory model and object lifecycle (stack, heap, metaspace)" },
+          { id: "m-jvm-2", task: "Explain GC strategies (G1, ZGC) and when to tune JVM flags" },
+          { id: "m-jvm-3", task: "Profile a Spring Boot service and identify CPU/memory hotspots" },
+          { id: "m-jvm-4", task: "Demonstrate thread safety issues and fixes with synchronized/locks" },
+          { id: "m-jvm-5", task: "Use CompletableFuture and thread pools for async workflows" },
+        ],
+      },
+      {
+        id: "m-java-language",
+        title: "Java Language Mastery",
+        items: [
+          { id: "m-java-1", task: "Use records, sealed classes, and generics effectively in domain models" },
+          { id: "m-java-2", task: "Apply streams judiciously and benchmark against imperative alternatives" },
+          { id: "m-java-3", task: "Model domain errors with exceptions and failure-aware APIs" },
+          { id: "m-java-4", task: "Write unit tests with JUnit + Mockito for non-trivial business logic" },
+          { id: "m-java-5", task: "Document architecture trade-offs in Java implementation choices" },
+        ],
+      },
+      {
+        id: "m-java-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-jd-1", task: "Build a concurrency lab project that compares blocking thread pool vs CompletableFuture strategy with measured throughput/latency results" },
+          { id: "m-jd-2", task: "Record a short architecture note explaining JVM tuning decisions (heap sizing, GC choice, and expected workload behavior)" },
+          { id: "m-jd-3", task: "Pass mastery check: answer one scenario question defending Java concurrency and JVM trade-offs" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-spring-boot",
+    phase: 2,
+    title: "Spring Boot Internals",
+    subtitle: "Move beyond CRUD and understand framework mechanics",
+    timeline: "Month 1-2",
+    color: "blue",
+    icon: "cloud",
+    sections: [
+      {
+        id: "m-spring-core",
+        title: "Spring Core",
+        items: [
+          { id: "m-spring-1", task: "Understand bean lifecycle, scopes, DI patterns, and autoconfiguration" },
+          { id: "m-spring-2", task: "Use profiles, config properties, and environment separation correctly" },
+          { id: "m-spring-3", task: "Apply AOP for cross-cutting concerns (logging, metrics, auditing)" },
+          { id: "m-spring-4", task: "Implement global exception handling and consistent API error contracts" },
+          { id: "m-spring-5", task: "Design modular package boundaries for a maintainable codebase" },
+        ],
+      },
+      {
+        id: "m-spring-architecture",
+        title: "Spring Service Architecture",
+        items: [
+          { id: "m-spa-1", task: "Build layered architecture (controller/service/repository) with clear boundaries" },
+          { id: "m-spa-2", task: "Implement idempotent write APIs with request keys and replay-safe behavior" },
+          { id: "m-spa-3", task: "Design API versioning strategy and deprecation policy in Spring" },
+          { id: "m-spa-4", task: "Secure APIs with Spring Security, JWT/OAuth2 resource server" },
+          { id: "m-spa-5", task: "Write an ADR for a core Spring architectural decision" },
+        ],
+      },
+      {
+        id: "m-spring-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-sd-1", task: "Ship one production-style Spring Boot service with auth, versioning, and standardized error model" },
+          { id: "m-sd-2", task: "Write ADR + C4 component diagram for this service and explain dependency boundaries" },
+          { id: "m-sd-3", task: "Pass mastery check: defend Spring module design and API evolution strategy in scenario review" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-data-postgres",
+    phase: 3,
+    title: "Data Mastery",
+    subtitle: "Own relational modeling, transactions, and query performance",
+    timeline: "Month 2-3",
+    color: "violet",
+    icon: "database",
+    sections: [
+      {
+        id: "m-postgres",
+        title: "PostgreSQL Architecture",
+        items: [
+          { id: "m-pg-1", task: "Design normalized and denormalized schemas for service workloads" },
+          { id: "m-pg-2", task: "Tune indexes using EXPLAIN ANALYZE and slow-query evidence" },
+          { id: "m-pg-3", task: "Control isolation levels and prevent deadlocks in critical flows" },
+          { id: "m-pg-4", task: "Apply partitioning and archiving strategies for large tables" },
+          { id: "m-pg-5", task: "Implement Flyway/Liquibase migration strategy for safe rollouts" },
+        ],
+      },
+      {
+        id: "m-jpa-transaction",
+        title: "Spring Data + Transaction Boundaries",
+        items: [
+          { id: "m-jpa-1", task: "Avoid N+1 and over-fetching with proper entity graph/query design" },
+          { id: "m-jpa-2", task: "Use optimistic/pessimistic locking with trade-off reasoning" },
+          { id: "m-jpa-3", task: "Define transactional boundaries aligned with business invariants" },
+          { id: "m-jpa-4", task: "Handle outbox pattern for reliable event publication" },
+          { id: "m-jpa-5", task: "Explain DB design decisions in architecture interview format" },
+        ],
+      },
+      {
+        id: "m-data-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-dd-1", task: "Build a schema + query benchmark report with before/after EXPLAIN evidence and index trade-offs" },
+          { id: "m-dd-2", task: "Demonstrate one transactional consistency case (locking/isolation) with reproducible test scenario" },
+          { id: "m-dd-3", task: "Pass mastery check: justify PostgreSQL + JPA design under scale and correctness constraints" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-redis-messaging",
+    phase: 4,
+    title: "Redis & Messaging",
+    subtitle: "Master high-throughput patterns and consistency trade-offs",
+    timeline: "Month 3-4",
+    color: "amber",
+    icon: "boxes",
+    sections: [
+      {
+        id: "m-redis",
+        title: "Redis in Production",
+        items: [
+          { id: "m-redis-1", task: "Implement cache-aside with TTL strategy per data volatility" },
+          { id: "m-redis-2", task: "Prevent cache stampede/penetration/avalanche in Spring services" },
+          { id: "m-redis-3", task: "Use Redis distributed lock with failure-mode analysis" },
+          { id: "m-redis-4", task: "Choose Redis data structures for counters, sessions, rate limits" },
+          { id: "m-redis-5", task: "Document when Redis is cache vs source-of-truth anti-pattern" },
+        ],
+      },
+      {
+        id: "m-messaging",
+        title: "Event & Queue Messaging",
+        items: [
+          { id: "m-msg-1", task: "Implement Kafka/SQS consumers with retry, backoff, and DLQ handling" },
+          { id: "m-msg-2", task: "Guarantee idempotency in at-least-once delivery workflows" },
+          { id: "m-msg-3", task: "Design ordering and partitioning strategy for domain events" },
+          { id: "m-msg-4", task: "Compare sync API vs async event-driven trade-offs for a feature" },
+          { id: "m-msg-5", task: "Build one saga/orchestration flow and explain compensation logic" },
+        ],
+      },
+      {
+        id: "m-consistency-recovery",
+        title: "Consistency & Recovery",
+        items: [
+          { id: "m-cr-1", task: "Implement outbox + inbox pattern and explain failure handling boundaries" },
+          { id: "m-cr-2", task: "Design replay strategy for poison messages and duplicate events" },
+          { id: "m-cr-3", task: "Define data reconciliation process for asynchronous workflows" },
+          { id: "m-cr-4", task: "Write runbook for partial failure in payment/order event pipelines" },
+          { id: "m-cr-5", task: "Prove exactly-once illusion limits and how to design around them" },
+        ],
+      },
+      {
+        id: "m-redis-msg-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-rmd-1", task: "Build one end-to-end async flow (API -> outbox -> broker -> consumer -> DB) with idempotency proof" },
+          { id: "m-rmd-2", task: "Run chaos test on duplicate/reordered/failed messages and document recovery behavior" },
+          { id: "m-rmd-3", task: "Pass mastery check: explain Redis + messaging consistency trade-offs in architecture interview style" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-cloud-runtime",
+    phase: 5,
+    title: "Cloud Runtime for Java",
+    subtitle: "Deploy and operate Spring workloads on AWS reliably",
+    timeline: "Month 4-5",
+    color: "red",
+    icon: "shield",
+    sections: [
+      {
+        id: "m-container-runtime",
+        title: "Containers and Platform",
+        items: [
+          { id: "m-rt-1", task: "Package Spring Boot app with multi-stage Docker build and slim runtime" },
+          { id: "m-rt-2", task: "Deploy to ECS/Fargate or EKS with health checks and autoscaling" },
+          { id: "m-rt-3", task: "Externalize secrets/config with secure runtime practices" },
+          { id: "m-rt-4", task: "Design rollout strategy: rolling, canary, blue-green" },
+          { id: "m-rt-5", task: "Compare ECS vs EKS vs Lambda(Java) for one architecture case" },
+        ],
+      },
+      {
+        id: "m-observability",
+        title: "Observability and Reliability",
+        items: [
+          { id: "m-obs-1", task: "Instrument Spring app with metrics, logs, and distributed tracing" },
+          { id: "m-obs-2", task: "Define SLOs and alerting thresholds for critical user journeys" },
+          { id: "m-obs-3", task: "Run load test and derive capacity/scaling decisions from evidence" },
+          { id: "m-obs-4", task: "Create incident runbook and postmortem template for service failures" },
+          { id: "m-obs-5", task: "Present reliability trade-offs as a Solution Architect recommendation" },
+        ],
+      },
+      {
+        id: "m-security-runtime",
+        title: "Security in Runtime",
+        items: [
+          { id: "m-sec-1", task: "Implement OAuth2/OIDC with token lifecycle, rotation, and revocation strategy" },
+          { id: "m-sec-2", task: "Apply method-level authorization and tenant isolation in Spring services" },
+          { id: "m-sec-3", task: "Use secrets management + key rotation policy (KMS/Secrets Manager)" },
+          { id: "m-sec-4", task: "Build threat model for one service and map mitigations to controls" },
+          { id: "m-sec-5", task: "Design incident response flow for auth token leakage scenario" },
+        ],
+      },
+      {
+        id: "m-delivery-platform",
+        title: "Delivery, IaC, and Release Engineering",
+        items: [
+          { id: "m-del-1", task: "Build CI pipeline gates: unit/integration/contract tests + security scans" },
+          { id: "m-del-2", task: "Define CD rollout policy with canary and automated rollback criteria" },
+          { id: "m-del-3", task: "Provision runtime with Terraform and enforce least-privilege IAM" },
+          { id: "m-del-4", task: "Use Testcontainers for reliable integration tests in CI" },
+          { id: "m-del-5", task: "Add SBOM/dependency vulnerability policy to release process" },
+        ],
+      },
+      {
+        id: "m-runtime-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-rd-1", task: "Deploy service to AWS runtime (ECS/EKS/Lambda) with dashboard, alerts, and rollback runbook" },
+          { id: "m-rd-2", task: "Run load and incident simulation; publish reliability report with SLO compliance evidence" },
+          { id: "m-rd-3", task: "Pass mastery check: defend runtime and deployment strategy versus alternatives" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-architecture-defense",
+    phase: 6,
+    title: "Architecture Defense",
+    subtitle: "Prove mastery through design, justification, and review",
+    timeline: "Month 5+",
+    color: "cyan",
+    icon: "presentation",
+    sections: [
+      {
+        id: "m-capstone",
+        title: "Capstone Architecture",
+        items: [
+          { id: "m-cap-1", task: "Design a Java/Spring e-commerce architecture with C4 + ADRs" },
+          { id: "m-cap-2", task: "Deliver one production-like PoC covering API, DB, Redis, and MQ" },
+          { id: "m-cap-3", task: "Run architecture review and capture feedback-driven revisions" },
+          { id: "m-cap-4", task: "Defend cost/performance/reliability trade-offs in scenario format" },
+          { id: "m-cap-5", task: "Publish a write-up that explains decisions and operational outcomes" },
+        ],
+      },
+      {
+        id: "m-exit-criteria",
+        title: "Mastery Exit Criteria",
+        items: [
+          { id: "m-exit-1", task: "Meet performance target: p95 latency, error rate, and throughput baseline documented" },
+          { id: "m-exit-2", task: "Meet resilience target: defined RTO/RPO and successful failover simulation" },
+          { id: "m-exit-3", task: "Meet security target: pass threat model review and remediation checklist" },
+          { id: "m-exit-4", task: "Meet cost target: architecture cost model with optimization decisions" },
+          { id: "m-exit-5", task: "Pass architecture defense: explain trade-offs to technical and non-technical stakeholders" },
+        ],
+      },
+      {
+        id: "m-defense-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-ad-1", task: "Complete one formal architecture review packet (requirements, C4, ADR, risk register, cost model)" },
+          { id: "m-ad-2", task: "Present and defend design to two audiences: engineering peers and business stakeholders" },
+          { id: "m-ad-3", task: "Capture review feedback and publish revised architecture with explicit decision changes" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "m-finops-leadership",
+    phase: 7,
+    title: "FinOps & Architecture Leadership",
+    subtitle: "Operate with business constraints, not just technical correctness",
+    timeline: "Month 6+",
+    color: "pink",
+    icon: "award",
+    sections: [
+      {
+        id: "m-finops",
+        title: "Cost and Capacity Architecture",
+        items: [
+          { id: "m-fin-1", task: "Build monthly cost model for one Java workload across dev/staging/prod" },
+          { id: "m-fin-2", task: "Evaluate cost-performance trade-offs across ECS/EKS/Lambda(Java)" },
+          { id: "m-fin-3", task: "Define rightsizing and autoscaling policy with budget guardrails" },
+          { id: "m-fin-4", task: "Instrument cost anomaly detection and owner tagging strategy" },
+          { id: "m-fin-5", task: "Present architecture recommendation balancing cost, reliability, and velocity" },
+        ],
+      },
+      {
+        id: "m-communication",
+        title: "Architecture Communication",
+        items: [
+          { id: "m-com-1", task: "Write ADRs for contentious decisions and capture alternatives explicitly" },
+          { id: "m-com-2", task: "Create C4 diagrams that align with runtime, data, and ownership boundaries" },
+          { id: "m-com-3", task: "Run architecture review meeting and resolve stakeholder disagreements" },
+          { id: "m-com-4", task: "Translate technical risks into business impact language for leadership" },
+          { id: "m-com-5", task: "Build interview-ready architecture portfolio with outcomes and lessons learned" },
+        ],
+      },
+      {
+        id: "m-leadership-deliverable",
+        title: "Phase Deliverable",
+        items: [
+          { id: "m-ld-1", task: "Publish a portfolio case study with measurable outcomes (latency, reliability, cost, incident reduction)" },
+          { id: "m-ld-2", task: "Create a one-page executive architecture brief translating technical choices to business impact" },
+          { id: "m-ld-3", task: "Pass mastery check: complete mock SA interview loop and document gap-closure plan" },
+        ],
+      },
+    ],
+  },
+];
+
+export const roadmapTracks: Record<TrackId, RoadmapTrack> = {
+  sa: {
+    id: "sa",
+    label: "Solution Architect",
+    description: "Broad architecture roadmap across cloud, systems, security, and leadership.",
+    roadmap,
+  },
+  mastery: {
+    id: "mastery",
+    label: "Java/Data Mastery",
+    description: "Deep technical mastery track for Java, Spring Boot, PostgreSQL, Redis, and messaging.",
+    roadmap: masteryRoadmap,
+  },
+};
+
+export function getRoadmapByTrack(trackId: TrackId): Phase[] {
+  return roadmapTracks[trackId].roadmap;
+}
+
+export function getTotalItems(trackId: TrackId = "sa"): number {
+  return getRoadmapByTrack(trackId).reduce(
     (total, phase) =>
       total + phase.sections.reduce((s, sec) => s + sec.items.length, 0),
     0

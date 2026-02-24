@@ -5,9 +5,16 @@
 create table public.checklist_progress (
   id         uuid default gen_random_uuid() primary key,
   user_id    uuid references auth.users(id) not null,
+  track_id   text not null default 'sa',
   completed  jsonb default '{}'::jsonb not null,
-  updated_at timestamptz default now() not null
+  updated_at timestamptz default now() not null,
+  unique (user_id, track_id)
 );
+
+-- If your table already exists, run this migration block once instead:
+-- alter table public.checklist_progress add column if not exists track_id text not null default 'sa';
+-- update public.checklist_progress set track_id = 'sa' where track_id is null;
+-- alter table public.checklist_progress add constraint checklist_progress_user_track_unique unique (user_id, track_id);
 
 -- 2. Enable RLS
 alter table public.checklist_progress enable row level security;

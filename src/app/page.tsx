@@ -9,10 +9,12 @@ import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
 import ReadOnlyBanner from "@/components/ReadOnlyBanner";
 import BackToTop from "@/components/BackToTop";
-import { roadmap } from "@/data/siteData";
+import { getRoadmapByTrack, type TrackId } from "@/data/siteData";
 import { useChecklist } from "@/hooks/useChecklist";
 
 export default function Home() {
+  const [mode, setMode] = useState<TrackId>("sa");
+  const activeRoadmap = getRoadmapByTrack(mode);
   const {
     completed,
     completedSet,
@@ -24,7 +26,7 @@ export default function Home() {
     user,
     signIn,
     signOut,
-  } = useChecklist();
+  } = useChecklist(mode);
   const [authOpen, setAuthOpen] = useState(false);
 
   return (
@@ -33,8 +35,11 @@ export default function Home() {
         isOwner={isOwner}
         user={user}
         saving={saving}
+        mode={mode}
+        phases={activeRoadmap}
         onLoginClick={() => setAuthOpen(true)}
         onSignOut={signOut}
+        onModeChange={setMode}
       />
       <AuthModal
         open={authOpen}
@@ -42,12 +47,17 @@ export default function Home() {
         onSignIn={signIn}
       />
       <main>
-        <Hero />
+        <Hero trackId={mode} />
         {hydrated ? (
           <>
             {!isOwner && <ReadOnlyBanner />}
-            <Dashboard completedSet={completedSet} completedMap={completed} />
-            {roadmap.map((phase, i) => (
+            <Dashboard
+              trackId={mode}
+              roadmap={activeRoadmap}
+              completedSet={completedSet}
+              completedMap={completed}
+            />
+            {activeRoadmap.map((phase, i) => (
               <PhaseSection
                 key={phase.id}
                 phase={phase}

@@ -1,9 +1,19 @@
 import Image from "next/image";
-import { profile, getTotalItems } from "@/data/siteData";
+import { profile, getTotalItems, getRoadmapByTrack, type TrackId } from "@/data/siteData";
 import { ArrowDown, ExternalLink } from "lucide-react";
 
-export default function Hero() {
-  const totalItems = getTotalItems();
+type Props = {
+  trackId: TrackId;
+};
+
+export default function Hero({ trackId }: Props) {
+  const totalItems = getTotalItems(trackId);
+  const phaseCount = getRoadmapByTrack(trackId).length;
+  const title = trackId === "sa" ? profile.tagline : "Java/Spring + Data Mastery";
+  const subtitle =
+    trackId === "sa"
+      ? "Started " + profile.startDate + " · Tracking every step of the journey."
+      : "Separate deep-dive track for Java 21, Spring Boot 3, PostgreSQL, Redis, and messaging.";
 
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
@@ -43,7 +53,7 @@ export default function Hero() {
           <div className="text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm text-brand-300 mb-5 animate-fade-in">
               <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
-              {totalItems} tasks &middot; 9 phases &middot; 1 goal
+              {totalItems} tasks &middot; {phaseCount} phases &middot; 1 goal
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-3 animate-slide-up">
@@ -51,11 +61,11 @@ export default function Hero() {
             </h1>
 
             <p className="text-xl md:text-2xl gradient-text font-semibold mb-3 animate-slide-up [animation-delay:0.1s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">
-              {profile.tagline}
+              {title}
             </p>
 
             <p className="text-sm text-gray-500 mb-6 animate-slide-up [animation-delay:0.2s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">
-              Started {profile.startDate} &middot; Tracking every step of the journey.
+              {subtitle}
             </p>
 
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 animate-slide-up [animation-delay:0.3s] opacity-0 motion-reduce:opacity-100 motion-reduce:animate-none">

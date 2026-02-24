@@ -2,18 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X, Target, Lock, Unlock, Loader2 } from "lucide-react";
-import { roadmap } from "@/data/siteData";
+import type { Phase, TrackId } from "@/data/siteData";
 import type { User } from "@supabase/supabase-js";
 
 type Props = {
   isOwner: boolean;
   user: User | null;
   saving: boolean;
+  mode: TrackId;
+  phases: Phase[];
   onLoginClick: () => void;
   onSignOut: () => void;
+  onModeChange: (mode: TrackId) => void;
 };
 
-export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut }: Props) {
+export default function Navbar({
+  isOwner,
+  user,
+  saving,
+  mode,
+  phases,
+  onLoginClick,
+  onSignOut,
+  onModeChange,
+}: Props) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -45,18 +57,40 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
           <a href="#" className="flex items-center gap-2 group">
             <Target className="w-5 h-5 text-brand-400 group-hover:text-brand-300 transition-colors" />
             <span className="font-semibold text-sm tracking-wide">
-              SA <span className="text-brand-400">Roadmap</span>
+              {mode === "sa" ? "SA" : "Mastery"} <span className="text-brand-400">Roadmap</span>
             </span>
           </a>
 
           <div className="hidden lg:flex items-center gap-1">
+            <div className="flex items-center gap-1 mr-2 p-1 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+              <button
+                onClick={() => onModeChange("sa")}
+                className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${
+                  mode === "sa"
+                    ? "bg-brand-500/20 text-brand-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                }`}
+              >
+                SA
+              </button>
+              <button
+                onClick={() => onModeChange("mastery")}
+                className={`px-2.5 py-1.5 text-xs rounded-md transition-all ${
+                  mode === "mastery"
+                    ? "bg-brand-500/20 text-brand-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                }`}
+              >
+                Mastery
+              </button>
+            </div>
             <a
               href="#dashboard"
               className="px-3 py-2 text-sm text-gray-400 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all"
             >
               Dashboard
             </a>
-            {roadmap.map((p) => (
+            {phases.map((p) => (
               <a
                 key={p.id}
                 href={`#${p.id}`}
@@ -111,6 +145,28 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
       {mobileOpen && (
         <div className="lg:hidden bg-gray-950 border-b border-white/[0.06]">
           <div className="px-6 py-4 space-y-1">
+            <div className="flex items-center gap-2 px-2 pb-2">
+              <button
+                onClick={() => { onModeChange("sa"); setMobileOpen(false); }}
+                className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+                  mode === "sa"
+                    ? "bg-brand-500/20 text-brand-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                }`}
+              >
+                SA
+              </button>
+              <button
+                onClick={() => { onModeChange("mastery"); setMobileOpen(false); }}
+                className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+                  mode === "mastery"
+                    ? "bg-brand-500/20 text-brand-300"
+                    : "text-gray-400 hover:text-white hover:bg-white/[0.06]"
+                }`}
+              >
+                Mastery
+              </button>
+            </div>
             <a
               href="#dashboard"
               onClick={() => setMobileOpen(false)}
@@ -118,7 +174,7 @@ export default function Navbar({ isOwner, user, saving, onLoginClick, onSignOut 
             >
               Dashboard
             </a>
-            {roadmap.map((p) => (
+            {phases.map((p) => (
               <a
                 key={p.id}
                 href={`#${p.id}`}
