@@ -202,6 +202,20 @@ export const roadmap: Phase[] = [
         ],
       },
       {
+        id: "lld-fundamentals",
+        title: "Broad Awareness: Low-Level Design Fundamentals",
+        items: [
+          { id: "sd-lld-1", task: "Understand what LLD covers in architecture work — component internals, interfaces, and runtime behavior" },
+          { id: "sd-lld-2", task: "Learn SOLID principles and when they improve maintainability in real systems" },
+          { id: "sd-lld-3", task: "Understand common OO patterns (Singleton, Factory, Strategy, Adapter) and appropriate usage boundaries" },
+          { id: "sd-lld-4", task: "Understand UML basics for LLD communication — sequence, class, and state diagrams" },
+          { id: "sd-lld-5", task: "Understand API contract design details — validation, error models, versioning, and backward compatibility" },
+          { id: "sd-lld-6", task: "Understand persistence boundary design — repository contracts, transaction scopes, and consistency expectations" },
+          { id: "sd-lld-7", task: "Understand concurrency and idempotency concerns at component level (retries, duplicate requests, race conditions)" },
+          { id: "sd-lld-8", task: "Understand testability in LLD — seams, mocking boundaries, and contract/integration test balance" },
+        ],
+      },
+      {
         id: "ddd",
         title: "Domain-Driven Design (DDD)",
         items: [
@@ -680,6 +694,19 @@ export const masteryRoadmap: Phase[] = [
         ],
       },
       {
+        id: "m-lld-java-spring",
+        title: "Deep Implementation Understanding: LLD in Java/Spring",
+        items: [
+          { id: "m1-lld-1", task: "Understand how to translate HLD components into Java packages, classes, and interfaces with clean boundaries" },
+          { id: "m1-lld-2", task: "Understand sequence-level request flow design in Spring (controller -> service -> repository -> integration clients)" },
+          { id: "m1-lld-3", task: "Understand domain model design choices (entities, value objects, aggregates) and invariants enforcement" },
+          { id: "m1-lld-4", task: "Understand error and exception flow design across layers, including mapping to stable API error contracts" },
+          { id: "m1-lld-5", task: "Understand transactional LLD decisions for write flows (isolation, retries, idempotency, rollback boundaries)" },
+          { id: "m1-lld-6", task: "Understand concurrency-safe LLD for high-contention paths (locking, optimistic concurrency, dedup keys)" },
+          { id: "m1-lld-7", task: "Understand how to represent implementation detail in lightweight diagrams (class/sequence) for code reviews" },
+        ],
+      },
+      {
         id: "m-engineering-deliverable",
         title: "Learning Outcomes",
         items: [
@@ -848,6 +875,8 @@ export const masteryRoadmap: Phase[] = [
           { id: "m5-p-5", task: "Understand platform standards for service onboarding (config, monitoring, deployment)" },
           { id: "m5-p-6", task: "Understand golden-path templates for reducing Spring service setup inconsistency" },
           { id: "m5-p-7", task: "Understand service-to-service network security baselines (mTLS, security groups, ingress)" },
+          { id: "m5-p-8", task: "Understand Infrastructure as Code foundations for platform teams (Terraform modules, state, drift, policy guardrails)" },
+          { id: "m5-p-9", task: "Understand when to use Terraform vs cloud-native IaC tools (for example CDK/CloudFormation) in delivery workflows" },
         ],
       },
       {
